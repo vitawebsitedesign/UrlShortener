@@ -1,5 +1,8 @@
 ## About
-This is a URL shortener webpage written in:
+This is a URL shortener webpage that supports bulk-shortening via CSV upload.
+Query parameters are reserved.
+
+## Tech
 1. .NET Core 3.1 (MVC)
 1. Entity Framework Core 3.1 (model-first)
 1. .NET Standard 2
