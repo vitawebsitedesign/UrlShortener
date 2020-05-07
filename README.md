@@ -1,6 +1,7 @@
 ## About
 This is a URL shortener webpage that supports bulk-shortening via CSV upload.
-Query parameters are reserved.
+
+Query parameters are preserved.
 
 ## Tech
 1. .NET Core 3.1 (MVC)
