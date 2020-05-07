@@ -1,4 +1,4 @@
-# What
+## About
 This is a URL shortener webpage written in:
 1. .NET Core 3.1 (MVC)
 1. Entity Framework Core 3.1 (model-first)
