@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace UrlShortener.Util
 {
@@ -10,6 +8,7 @@ namespace UrlShortener.Util
         {
             var inputIsUrl = Uri.TryCreate(input, UriKind.Absolute, out var url)
                 && (url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps);
+
             if (inputIsUrl)
             {
                 var code = Guid.NewGuid().GetHashCode();
