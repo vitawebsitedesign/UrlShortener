@@ -1,5 +1,5 @@
 ## About
-This is a URL shortener webpage that supports bulk-shortening via CSV upload.
+This is a URL shortener webpage that supports bulk-shortening via CSV upload, or just a single link via textbox.
 
 Query parameters are preserved.
 
