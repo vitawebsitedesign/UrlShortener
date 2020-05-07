@@ -4,37 +4,82 @@
     ViewData["Title"] = "Home Page";
 }
 
-@{
-    string tryGetAbsoluteShortUrl(string shortUrlHash) {
-        if (string.IsNullOrWhiteSpace(shortUrlHash)) {
-            return null;
-        }
-        return $"{Context.Request.Scheme}://{Context.Request.Host}/{shortUrlHash}";
-    }
+<div class="row">
+    <div class="col-12 col-lg-8 offset-lg-2 text-center">
+        <header class="row">
+            <h1 class="col-12">URL Shortener</h1>
+            <p class="col-12">You can shorten URLs on this webpage by pasting/entering in a URL into the textbox below, then clicking "Shorten URL"</p>
+        </header>
 
-    var absoluteShortUrl = tryGetAbsoluteShortUrl(Model.ShortUrlHash);
-}
+        <section class="row">
+            @using (Html.BeginForm(nameof(HomeController.Index), "Home", FormMethod.Post, new
+            {
+                enctype = "multipart/form-data",
+                @class = "col-12"
+            }))
+            {
+                @Html.AntiForgeryToken()
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to the URL Shortener webpage</h1>
-    <p>You can shorten URLs on this webpage by pasting/entering in a URL into the textbox below, then clicking "Shorten URL"</p>
-
-    @using (Html.BeginForm(nameof(HomeController.ShortenUrl), "Home", FormMethod.Post))
-    {
-        @Html.TextBoxFor(m => m.LongUrl, new
-        {
-            Placeholder = "Example: vitawebsitedesign.github.io/bookmarks/"
-        });
-        <input type="submit" value="Shorten URL" />
-    }
-
-    @if (Model.ShortUrlHash?.Length > 0)
-    {
-        <section>
-            <div>Use the short URL below to share your link with others:</div>
-            <a href="@absoluteShortUrl" target="_blank" title="Click to open your URL in a new tab">
-                @absoluteShortUrl
-            </a>
+                <div class="col-12">
+                    <h4>URL</h4>
+                    <p>Example: vitawebsitedesign.github.io/bookmarks/</p>
+                    @Html.TextBoxFor(m => m.urlTextbox, new
+                    {
+                        Placeholder = "Paste in your URL here"
+                    })
+                    <input type="submit" value="Shorten URL" />
+                </div>
+                <div class="col-12">
+                    and/or
+                </div>
+                <div class="col-12">
+                    <h4>CSV</h4>
+                    <p>A list of links in a CSV (note: please ensure your CSV has no header row)</p>
+                    <input type="file" accept=".csv" asp-for="Csv" id="file-picker" onchange="this.form.submit()" />
+                </div>
+            }
         </section>
-    }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <section class="row">
+                <div class="col-12 my-4 validation-summary alert alert-warning">
+                    @Html.ValidationMessageFor(m => m.urlTextbox)
+                    @Html.ValidationSummary(true)
+                </div>
+            </section>
+        }
+
+        @if (Model.UrlMappings?.Any() == true)
+        {
+            <section class="row">
+                <div class="col-12">
+                    <p>Use the short URLs below to share your link with others:</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Your original URL</th>
+                                <th>Short URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mapping in Model.UrlMappings)
+                            {
+                                <tr>
+                                    <td>
+                                        @mapping.Url
+                                    </td>
+                                    <td>
+                                        <a href="@mapping.UrlShort" target="_blank" title="Click to open your URL in a new tab">
+                                            @mapping.UrlShort
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    </div>
 </div>
