@@ -1,0 +1,36 @@
+﻿@model UrlShortener.Models.HomeViewModel
+
+<div class="col-12 pt-0 pt-lg-4 url-shortener-results">
+    <hr class="my-4" />
+
+    <div class="mb-5">
+        <h4>Your short links!</h4>
+        <p>Use the short URLs below to share your link with others:</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Your original URL</th>
+                    <th>Short URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var mapping in Model.UrlMappings)
+                {
+                    <tr>
+                        <td>
+                            @mapping.Url
+                        </td>
+                        <td>
+                            <a href="@mapping.UrlShort" target="_blank" title="Click to open your URL in a new tab">
+                                @mapping.UrlShort
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

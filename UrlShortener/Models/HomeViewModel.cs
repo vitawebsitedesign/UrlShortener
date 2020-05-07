@@ -11,8 +11,8 @@ namespace UrlShortener.Models
         [DisplayName("URL")]
         [DataType(DataType.Url)]
         [DataAnnotationsExtensions.Url(UrlOptions.OptionalProtocol, ErrorMessage = "Please input a valid URL")]
-        public string urlTextbox { get; set; }
-        public IFormFile Csv { get; set; }
+        public string UrlTextbox { get; set; }
         public IEnumerable<HomeUrlMappingViewModel> UrlMappings { get; set; } = new List<HomeUrlMappingViewModel>();
+        public IFormFile Csv { get; set; }
     }
 }

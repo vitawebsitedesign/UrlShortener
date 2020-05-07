@@ -1,0 +1,32 @@
+﻿@model UrlShortener.Models.HomeViewModel
+@using UrlShortener.Controllers
+
+@using (Html.BeginForm(nameof(HomeController.Index), "Home", FormMethod.Post, new
+{
+    enctype = "multipart/form-data",
+    @class = "url-shortener-form w-100"
+}))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="col-12">
+        <h4>URL</h4>
+        <p>Example: vitawebsitedesign.github.io/bookmarks/</p>
+        <div class="d-flex">
+            @Html.TextBoxFor(m => m.UrlTextbox, new
+            {
+                Placeholder = "Paste in your URL here",
+                @class = "col-12 col-lg-8 form-control"
+            })
+            <input type="submit" value="Shorten URL" class="col-12 col-lg-4 btn btn-primary" />
+        </div>
+    </div>
+    <div class="col-12 my-3 faded">
+        <i>and / or</i>
+    </div>
+    <div class="col-12">
+        <h4>CSV</h4>
+        <p>A list of links in a CSV</p>
+        <input type="file" accept=".csv" asp-for="Csv" id="file-picker" onchange="this.form.submit()" />
+    </div>
+}

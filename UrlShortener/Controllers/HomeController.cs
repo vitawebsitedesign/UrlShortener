@@ -45,7 +45,7 @@ namespace UrlShortener.Controllers
                 }
             }
 
-            ModelState.AddModelError("", "Your short URL is invalid - redirection cancelled");
+            // Redirect to home for invalid URL hashes
             return View(nameof(Index), new HomeViewModel());
         }
 
@@ -108,9 +108,9 @@ namespace UrlShortener.Controllers
         private async Task<IEnumerable<string>> TryGetUrls(HomeViewModel model)
         {
             var csvUrls = await TryGetUrlsFromCsv(model.Csv);
-            var textboxUrl = string.IsNullOrWhiteSpace(model.urlTextbox)
+            var textboxUrl = string.IsNullOrWhiteSpace(model.UrlTextbox)
                 ? Enumerable.Empty<string>()
-                : new List<string> { model.urlTextbox };
+                : new List<string> { model.UrlTextbox };
 
             return csvUrls.Concat(textboxUrl);
         }

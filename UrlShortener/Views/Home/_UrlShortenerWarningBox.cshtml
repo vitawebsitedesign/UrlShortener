@@ -1,0 +1,8 @@
+﻿@model UrlShortener.Models.HomeViewModel
+
+<div class="col-12 my-4">
+    <div class="validation-summary alert alert-warning">
+        @Html.ValidationMessageFor(m => m.UrlTextbox)
+        @Html.ValidationSummary(true)
+    </div>
+</div>
