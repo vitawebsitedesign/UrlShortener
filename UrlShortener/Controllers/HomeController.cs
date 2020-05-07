@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using UrlShortener.Bll;
@@ -13,55 +15,116 @@ namespace UrlShortener.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IUrlAdapter _urlAdapter;
+        private readonly UrlUtil _urlUtil;
+        private readonly UrlRepository _urlRepository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IUrlAdapter urlAdapter, UrlUtil urlUtil, UrlRepository urlRepository)
         {
-            _logger = logger;
+            _urlAdapter = urlAdapter;
+            _urlUtil = urlUtil;
+            _urlRepository = urlRepository;
         }
 
         [HttpGet]
-        public IActionResult Index(HomeViewModel viewModel)
+        public IActionResult Index()
         {
-            viewModel = viewModel ?? new HomeViewModel();
-            return View(nameof(Index), viewModel);
+            return View(nameof(Index), new HomeViewModel());
         }
 
         [HttpGet]
         public async Task<IActionResult> TryGotoShortUrl(string shortUrlHash)
         {
-            var shouldRedirect = !string.IsNullOrWhiteSpace(shortUrlHash);
-            if (shouldRedirect)
+            var hashValid = !string.IsNullOrWhiteSpace(shortUrlHash);
+            if (hashValid)
             {
-                var repo = new UrlRepository();
-                var longUrl = await repo.TryGetLongUrl(shortUrlHash);
+                var longUrl = await _urlRepository.TryGetLongUrl(shortUrlHash);
                 if (longUrl != default)
                 {
                     return Redirect(longUrl);
                 }
             }
-            return Index(null);
+
+            ModelState.AddModelError("", "Your short URL is invalid - redirection cancelled");
+            return View(nameof(Index), new HomeViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> ShortenUrl(HomeViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Index(HomeViewModel model)
         {
-            var repo = new UrlRepository();
-            var adapter = new UrlAdapterStringToHex();
-            var shortUrl = adapter.GetHashedUrl(model.LongUrl);
-            await repo.CreateUrlMapping(model.LongUrl, shortUrl);
-
-            return Index(new HomeViewModel
-            {
-                LongUrl = model.LongUrl,
-                ShortUrlHash = shortUrl
-            });
+            return View(nameof(Index), await GetModelWithShortUrls(model));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private async Task<HomeViewModel> GetModelWithShortUrls(HomeViewModel model)
+        {
+            var urls = await TryGetUrls(model);
+            if (ModelState.IsValid)
+            {
+                var websiteUrl = $"{Request.Scheme}://{Request.Host}";
+                model.UrlMappings = await TryCreateShortUrls(websiteUrl, urls);
+                if (model.UrlMappings == null)
+                {
+                    ModelState.AddModelError("", "This URL shortener service is temporary unavailable - please try again later");
+                }
+            }
+
+            if (!model.UrlMappings.Any())
+            {
+                ModelState.AddModelError("", "No valid URL(s) were supplied. Please supply at least 1 valid URL.");
+            }
+
+            return model;
+        }
+
+        private async Task<IEnumerable<HomeUrlMappingViewModel>> TryCreateShortUrls(string websiteUrl, IEnumerable<string> urls)
+        {
+            var mappings = new List<(string url, string urlHash)>();
+
+            foreach (var url in urls)
+            {
+                var urlWithProtocol = _urlUtil.GetUrlWithProtocol(url);
+                var urlHash = _urlAdapter.TryGetUrlHash(urlWithProtocol);
+                if (urlHash != null)
+                {
+                    mappings.Add((urlWithProtocol, urlHash));
+                }
+            }
+
+            if (await _urlRepository.TryCreateShortUrls(mappings))
+            {
+                var viewModels = mappings.Select(m => new HomeUrlMappingViewModel(websiteUrl, m.url, m.urlHash));
+                return viewModels;
+            }
+            return null;
+        }
+
+        private async Task<IEnumerable<string>> TryGetUrls(HomeViewModel model)
+        {
+            var csvUrls = await TryGetUrlsFromCsv(model.Csv);
+            var textboxUrl = string.IsNullOrWhiteSpace(model.urlTextbox)
+                ? Enumerable.Empty<string>()
+                : new List<string> { model.urlTextbox };
+
+            return csvUrls.Concat(textboxUrl);
+        }
+
+        private async Task<IEnumerable<string>> TryGetUrlsFromCsv(IFormFile csv)
+        {
+            if (csv != null)
+            {
+                using (var stream = csv.OpenReadStream())
+                {
+                    return await _urlUtil.GetUrlsFromCsv(stream);
+                }
+            }
+            return Enumerable.Empty<string>();
         }
     }
 }

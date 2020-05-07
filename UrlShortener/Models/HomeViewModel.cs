@@ -1,13 +1,18 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using DataAnnotationsExtensions;
 
 namespace UrlShortener.Models
 {
     public class HomeViewModel
     {
-        public string LongUrl { get; set; }
-        public string ShortUrlHash { get; set; }
+        [DisplayName("URL")]
+        [DataType(DataType.Url)]
+        [DataAnnotationsExtensions.Url(UrlOptions.OptionalProtocol, ErrorMessage = "Please input a valid URL")]
+        public string urlTextbox { get; set; }
+        public IFormFile Csv { get; set; }
+        public IEnumerable<HomeUrlMappingViewModel> UrlMappings { get; set; } = new List<HomeUrlMappingViewModel>();
     }
 }

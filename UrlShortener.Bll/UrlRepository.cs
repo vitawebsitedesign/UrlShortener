@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UrlShortener.EntityFrameworkCore.Models;
@@ -8,23 +11,27 @@ namespace UrlShortener.Bll
 {
     public class UrlRepository
     {
-        public async Task<bool> CreateUrlMapping(string longUrl, string shortUrl)
+        private readonly ILogger<UrlRepository> _logger;
+        public UrlRepository(ILogger<UrlRepository> logger)
         {
-            if (string.IsNullOrWhiteSpace(longUrl))
-                throw new ArgumentException(nameof(longUrl));
-            if (string.IsNullOrWhiteSpace(shortUrl))
-                throw new ArgumentException(nameof(shortUrl));
+            _logger = logger;
+        }
 
+        public async Task<bool> TryCreateShortUrls(IEnumerable<(string url, string urlHash)> mappings)
+        {
             using (var db = new UrlShortenerContext())
             {
-                db.UrlMappings.Add(new UrlMapping(longUrl, shortUrl));
+                var rows = mappings.Select(map => new UrlMapping(map.url, map.Item2));
+                db.UrlMappings.AddRange(rows);
+
                 try
                 {
                     await db.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // I would do logging here for the exception (e.g.: log4net, azure app insights etc)
+                    // Fail gracefully by masquerading this critical production error, & log server exception so it can be debugged later
+                    _logger.LogError(ex, ex.Message);
                     return false;
                 }
                 return true;
