@@ -16,7 +16,8 @@ Query parameters are preserved.
 1. In Visual Studio solution explorer, right-click "UrlShortener" & select "Set as Startup Project"
 1. Open nuget package CLI
 1. `Update-Database -Project UrlShortener.EntityFrameworkCore -StartupProject UrlShortener -Migration InitialMigration`
-1. Select "IIS Express" & click the green play button (at the top). You will now see the MVC solution running via localhost
+1. Select "IIS Express" & click the green play button (at the top)
+1. Goto `https://localhost:44319/`. You will now see the URL shortener webpage running via localhost
 
 ## Running the test suite
 1. In Visual Studio, click "Test" (at the top) > "Test Explorer"
