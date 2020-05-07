@@ -41,6 +41,9 @@ tbody {
 .validation-summary {
     animation: wobble 0.3s linear;
 }
+.validation-summary ul {
+    padding-inline-start: 0;
+}
 
 @keyframes slide-up {
     from {
